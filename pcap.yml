@@ -9,6 +9,12 @@
         state: present
         update_cache: yes
 
+    - name: Copy the PCAP file to the remote server
+      copy:
+        src: /path/to/local/captured.pcap  # Replace with the actual path to your local PCAP file
+        dest: /tmp/captured.pcap
+      become: yes
+
     - name: Extract executable using tshark from PCAP file
       shell: tshark -r /tmp/captured.pcap -qz "follow,tcp,raw,1" > /home/Kier/extracted_executable.bin
       register: extraction_result
