@@ -10,9 +10,9 @@
         update_cache: yes
 
     - name: Extract executable using tshark from PCAP file
-      shell: tshark -r /tmp/captured.pcap -qz "follow,tcp,raw,0" > /home/Kier/extracted_executable.bin
-      register: extraction_result
-      ignore_errors: yes
+  shell: tshark -r /tmp/captured.pcap -qz "follow,tcp,raw,1" > /home/Kier/extracted_executable.bin
+  register: extraction_result
+  ignore_errors: yes
 
     - name: Check if the extraction produced a file
       stat:
