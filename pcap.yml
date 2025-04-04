@@ -1,40 +1,29 @@
 ---
-- name: Extract executable from PCAP on Control Node
+- name: Extract executable from PCAP file on Control Node
   hosts: servers
   become: yes
   tasks:
-    - name: Ensure wireshark is installed
+    - name: Update apt cache and install tshark
       apt:
-        name: wireshark
+        name: tshark
         state: present
+        update_cache: yes
 
-    - name: Ensure tcpdump is installed
-      apt:
-        name: tcpdump
-        state: present
+    - name: Extract executable using tshark from PCAP file
+      shell: tshark -r /tmp/captured.pcap -qz "follow,tcp,raw,0" > /home/qfmgayao/extracted_executable.bin
+      register: extraction_result
+      ignore_errors: yes
 
-    - name: Transfer PCAP file to Control Node
-      copy:
-        src: /tmp/captured.pcap  # This is the path on the Manage Node
-        dest: /tmp/captured.pcap  # Destination path on the Control Node
-
-    - name: Extract executable from PCAP using Wireshark (tshark)
-      shell: |
-        tshark -r /tmp/captured.pcap -Y 'http.file_data' -T fields -e http.file_data > /tmp/extracted_data.bin
-      register: tshark_output
-
-    - name: Check if executable was found
+    - name: Check if the extraction produced a file
       stat:
-        path: /tmp/extracted_data.bin
-      register: file_stat
+        path: /home/qfmgayao/extracted_executable.bin
+      register: extracted_file
 
-    - name: Report success or failure
+    - name: Debug output of the extraction
       debug:
-        msg: "Executable extracted successfully"
-      when: file_stat.stat.exists
+        var: extraction_result
 
-    - name: Clean up extracted data
-      file:
-        path: /tmp/extracted_data.bin
-        state: absent
-      when: file_stat.stat.exists
+    - name: Fail if no file was extracted
+      fail:
+        msg: "No executable was extracted from the PCAP file. Check the tshark command and PCAP file."
+      when: not extracted_file.stat.exists
