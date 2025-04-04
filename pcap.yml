@@ -1,0 +1,40 @@
+---
+- name: Extract executable from PCAP on Control Node
+  hosts: servers
+  become: yes
+  tasks:
+    - name: Ensure wireshark is installed
+      apt:
+        name: wireshark
+        state: present
+
+    - name: Ensure tcpdump is installed
+      apt:
+        name: tcpdump
+        state: present
+
+    - name: Transfer PCAP file to Control Node
+      copy:
+        src: /tmp/captured.pcap  # This is the path on the Manage Node
+        dest: /tmp/captured.pcap  # Destination path on the Control Node
+
+    - name: Extract executable from PCAP using Wireshark (tshark)
+      shell: |
+        tshark -r /tmp/captured.pcap -Y 'http.file_data' -T fields -e http.file_data > /tmp/extracted_data.bin
+      register: tshark_output
+
+    - name: Check if executable was found
+      stat:
+        path: /tmp/extracted_data.bin
+      register: file_stat
+
+    - name: Report success or failure
+      debug:
+        msg: "Executable extracted successfully"
+      when: file_stat.stat.exists
+
+    - name: Clean up extracted data
+      file:
+        path: /tmp/extracted_data.bin
+        state: absent
+      when: file_stat.stat.exists
