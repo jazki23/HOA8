@@ -10,13 +10,13 @@
         update_cache: yes
 
     - name: Extract executable using tshark from PCAP file
-      shell: tshark -r /tmp/captured.pcap -qz "follow,tcp,raw,0" > /home/qfmgayao/extracted_executable.bin
+      shell: tshark -r /tmp/captured.pcap -qz "follow,tcp,raw,0" > /home/kier/extracted_executable.bin
       register: extraction_result
       ignore_errors: yes
 
     - name: Check if the extraction produced a file
       stat:
-        path: /home/qfmgayao/extracted_executable.bin
+        path: /home/kier/extracted_executable.bin
       register: extracted_file
 
     - name: Debug output of the extraction
