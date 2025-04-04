@@ -9,11 +9,18 @@
         state: present
         update_cache: yes
 
-    - name: Copy the PCAP file to the remote server
-      copy:
-        src: /path/to/local/captured.pcap  # Replace with the actual path to your local PCAP file
-        dest: /tmp/captured.pcap
-      become: yes
+    - name: Debug the current directory
+      shell: pwd
+      register: current_directory
+
+    - name: List files in /tmp
+      shell: ls -l /tmp
+      register: tmp_directory_listing
+      ignore_errors: yes
+
+    - name: Show current directory and /tmp listing
+      debug:
+        msg: "Current directory: {{ current_directory.stdout }}, /tmp contents: {{ tmp_directory_listing.stdout }}"
 
     - name: Extract executable using tshark from PCAP file
       shell: tshark -r /tmp/captured.pcap -qz "follow,tcp,raw,1" > /home/Kier/extracted_executable.bin
